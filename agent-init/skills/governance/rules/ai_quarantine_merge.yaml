@@ -1,0 +1,187 @@
+# ============================================================
+# AI Code Provenance & Quality Gate — AI 程式碼溯源與品質閘門
+# ============================================================
+# 現代 AI-assisted development 模型：
+# 不再隔離 AI 生成的程式碼，而是透過 git trailer 標記來源、
+# CI 品質門檻強制執行、以及核心模組的額外審查來確保品質。
+#
+# 設計理念：通過品質門檻的程式碼就是好程式碼，不論來源。
+# ============================================================
+
+id: gov.ai_provenance_gate.v2
+version: "2.0.0"
+name: "AI 程式碼溯源與品質閘門"
+description: |
+  以溯源標記（git trailer）取代物理隔離。AI 輔助產生的程式碼
+  必須通過與人類撰寫程式碼相同的品質門檻（lint、type-check、
+  test coverage），並在觸及核心模組時附加審查要求。
+
+scope:
+  applies_to:
+    - "{{SRC_DIR}}/**"
+    - "{{API_DIR}}/**"
+  trigger_on:
+    - file_create
+    - file_modify
+
+# ------------------------------------------------------------
+# 溯源標記規範（取代 ai-generated/ 隔離區）
+# ------------------------------------------------------------
+provenance:
+  # Git trailer 格式，附加於 commit message footer
+  git_trailer:
+    key: "AI-Assisted-By"
+    format: "<tool-name>"
+    examples:
+      - "AI-Assisted-By: claude-code"
+      - "AI-Assisted-By: github-copilot"
+      - "AI-Assisted-By: cursor"
+  # 用於審計與統計，不影響合併流程
+  audit_purpose: |
+    透過 `git log --grep="AI-Assisted-By"` 追蹤 AI 輔助的變更，
+    用於定期審計 AI 貢獻比例、品質趨勢、以及核心模組覆蓋範圍。
+
+# ------------------------------------------------------------
+# 規則定義
+# ------------------------------------------------------------
+rules:
+
+  - id: P1
+    name: "AI 輔助的 commit 必須附上溯源標記"
+    description: |
+      任何包含 AI 工具顯著貢獻的 commit（非單純 autocomplete），
+      必須在 commit message 中附上 AI-Assisted-By trailer，
+      標明使用的 AI 工具名稱。
+    severity: warning
+    condition: |
+      commit_has_ai_contribution
+      AND NOT commit_message CONTAINS "AI-Assisted-By:"
+    action: warn
+    message: |
+      ⚠️ 此 commit 似乎包含 AI 輔助的程式碼，但缺少溯源標記。
+      請在 commit message 中加入：
+        AI-Assisted-By: <tool-name>
+      例如：AI-Assisted-By: claude-code
+
+  - id: P2
+    name: "所有程式碼必須通過統一品質門檻"
+    description: |
+      無論程式碼來源（人類或 AI），所有進入主分支的程式碼
+      必須通過相同的品質檢查：lint、type-check、測試覆蓋率。
+      這是品質保證的核心機制，取代隔離審查。
+    severity: error
+    condition: |
+      target_branch IN ["main", "master"]
+      AND NOT (
+        ci_check_passed("lint")
+        AND ci_check_passed("type-check")
+        AND ci_check_passed("test")
+        AND test_coverage >= minimum_threshold
+      )
+    action: block
+    message: |
+      ❌ 程式碼未通過品質門檻，無法合併至主分支。
+      必要檢查：
+      1. ✅ Lint 通過（零 error）
+      2. ✅ Type check 通過
+      3. ✅ 測試通過
+      4. ✅ 測試覆蓋率達到門檻
+
+  - id: P3
+    name: "AI 輔助程式碼觸及核心模組須附 ADR 或 Intent 說明"
+    description: |
+      當 AI 輔助的程式碼涉及核心模組（認證、資料存取、核心業務邏輯）時，
+      必須額外建立 ADR 或在 commit message 中附 AI-INTENT 說明，
+      記錄為何使用 AI 輔助此部分以及人類審查的重點。
+    severity: error
+    condition: |
+      commit_message CONTAINS "AI-Assisted-By:"
+      AND changed_files INTERSECT [
+        "{{SRC_DIR}}/core/**",
+        "{{SRC_DIR}}/auth/**",
+        "{{SRC_DIR}}/data/**"
+      ]
+      AND NOT (
+        changed_files INTERSECT ["{{ADR_DIR}}/**"]
+        OR commit_message CONTAINS "AI-INTENT:"
+      )
+    action: block
+    message: |
+      ❌ AI 輔助程式碼觸及核心模組但缺少決策記錄。
+      請選擇以下其一：
+      1. 在 {{ADR_DIR}}/ 下建立 ADR，說明 AI 輔助的範圍與審查重點
+      2. 在 commit message 中加入 AI-INTENT: 標記，說明決策理由
+
+# ------------------------------------------------------------
+# 封鎖條件（硬性阻擋）
+# ------------------------------------------------------------
+blocks:
+  - id: P_BLOCK_1
+    name: "禁止繞過 CI 品質檢查合併至主分支"
+    description: |
+      任何繞過 CI 品質檢查（如 --no-verify、force merge）的行為
+      一律封鎖。這是品質保證的最後防線。
+    condition: |
+      target_branch IN ["main", "master"]
+      AND (
+        merge_bypasses_ci
+        OR commit_flag CONTAINS "--no-verify"
+      )
+    action: block
+    message: |
+      🚨 封鎖：不得繞過 CI 品質檢查合併至主分支。
+      所有程式碼（無論來源）必須通過完整的 CI pipeline。
+
+# ------------------------------------------------------------
+# 豁免條件
+# ------------------------------------------------------------
+exemptions:
+  - description: "測試檔案不需額外的核心模組審查（P3）"
+    condition: file_path MATCH "**/*.test.*" OR file_path MATCH "**/*.spec.*"
+  - description: "文件檔案不需品質門檻（P2）"
+    condition: file_path MATCH "docs/**" OR file_path MATCH "**/*.md"
+  - description: "單行 autocomplete 不需溯源標記（P1）"
+    condition: change_size <= 3 AND change_type = modification
+  - description: "附有 AI-REVIEWED: 標記的已審查程式碼可跳過核心模組 ADR 要求"
+    condition: commit_message CONTAINS "AI-REVIEWED:"
+
+# ------------------------------------------------------------
+# 自動修正建議
+# ------------------------------------------------------------
+suggestions:
+  - trigger: P1
+    hint: |
+      在 commit message 末尾加入 trailer：
+
+      feat(module): implement feature
+
+      AI-Assisted-By: claude-code
+
+  - trigger: P2
+    hint: |
+      確保 CI pipeline 包含以下步驟：
+      1. lint: `{{LINTER_CONFIG}}` 零 error
+      2. type-check: 嚴格模式通過
+      3. test: 所有測試通過，覆蓋率達標
+      4. 若任一步驟失敗，修復後重新提交
+
+  - trigger: P3
+    hint: |
+      建議步驟：
+      1. 評估 AI 輔助的核心模組程式碼品質與安全性
+      2. 選擇 ADR 或 AI-INTENT 標記記錄決策
+      3. 在 PR 中特別標記需要重點審查的區塊
+
+# ------------------------------------------------------------
+# 遷移指南（從 v1 隔離模式遷移）
+# ------------------------------------------------------------
+migration_from_v1:
+  description: |
+    若專案先前使用 ai-generated/ 隔離區模式（v1），
+    可按以下步驟遷移至溯源標記模式（v2）：
+  steps:
+    - "將 ai-generated/ 中已審查的程式碼移至正確的生產路徑"
+    - "刪除 ai-generated/ 目錄"
+    - "在 CI pipeline 中加入 lint + type-check + test 品質門檻"
+    - "團隊約定使用 AI-Assisted-By trailer 標記 AI 輔助的 commit"
+    - "定期執行 git log --grep='AI-Assisted-By' 進行審計"

@@ -1,0 +1,78 @@
+[project]
+name = "project-linebot-rag-skills"
+version = "0.1.0"
+description = "Private LINE Bot with skill-based routing and lightweight Supabase RAG"
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+dependencies = [
+  "apscheduler>=3.10",
+  "fastapi>=0.115",
+  "httpx>=0.28",
+  "langgraph>=0.2,<1.0",
+  "openai>=1.40",
+  "pdfplumber>=0.11",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "pypdf>=4.0",
+  "python-dotenv>=1.0",
+  "pyyaml>=6.0",
+  "sqlite-vec>=0.1",
+  "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+]
+claude = [
+  "anthropic>=0.40",
+]
+gemini = [
+  "google-genai>=1.0",
+]
+all-providers = [
+  "anthropic>=0.40",
+  "google-genai>=1.0",
+]
+pinecone = [
+  "pinecone-client>=4.0",
+]
+notion = [
+  "notion-client>=2.0",
+]
+ocr = [
+  "pytesseract>=0.3",
+  "pillow>=10.0",
+]
+hitl = [
+  "langgraph-checkpoint-sqlite>=2.0",
+  "aiosqlite>=0.20",
+]
+crawler = [
+  "playwright>=1.40",
+  "markdownify>=0.11",
+  "readability-lxml>=0.8",
+  "lxml>=5.0",
+]
+# spec-28 reranker — 依 RERANKER_PROVIDER 擇一安裝
+reranker-cohere = ["cohere>=5.0"]
+reranker-bge = ["sentence-transformers>=2.7"]
+# spec-29 本地 HuggingFace embedding（EMBEDDING_PROVIDER=huggingface 時需要）
+hf-embed = ["sentence-transformers>=2.7"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

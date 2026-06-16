@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<title>韓文學習 RAG LINE Bot — 洪偉強 B11356022</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reset.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card2: #334155;
+  --accent: #34d399;
+  --accent2: #fbbf24;
+  --accent3: #818cf8;
+  --danger: #f87171;
+  --blue: #38bdf8;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: rgba(255,255,255,0.07);
+  --r: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Reveal overrides ── */
+.reveal-viewport { background: var(--bg) !important; }
+.reveal { font-family: 'Noto Sans TC', sans-serif; }
+.reveal .slides { text-align: left; }
+.reveal .slides section {
+  height: 720px; width: 1280px;
+  padding: 0; color: var(--text);
+  font-size: 16px; line-height: 1.5;
+}
+.reveal .progress { height: 3px; color: var(--accent); }
+.reveal .controls { color: var(--accent); }
+
+/* ── Layout ── */
+.si { padding: 36px 52px; height: 100%; position: relative; overflow: hidden; }
+.cols2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cols3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.cols23 { display: grid; grid-template-columns: 2fr 3fr; gap: 16px; }
+.cols32 { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; }
+
+/* ── Typography ── */
+.stag {
+  display: inline-block; padding: 2px 10px; border-radius: 20px;
+  font-size: 0.6rem; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.tg { background: rgba(52,211,153,.12); color: var(--accent); border: 1px solid rgba(52,211,153,.25); }
+.ta { background: rgba(251,191,36,.12); color: var(--accent2); border: 1px solid rgba(251,191,36,.25); }
+.tp { background: rgba(129,140,248,.12); color: var(--accent3); border: 1px solid rgba(129,140,248,.25); }
+.tb { background: rgba(56,189,248,.12); color: var(--blue); border: 1px solid rgba(56,189,248,.25); }
+
+.sh {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 1.75rem; font-weight: 900;
+  line-height: 1.2; margin-bottom: 6px;
+}
+.tline {
+  width: 44px; height: 3px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  border-radius: 2px; margin-bottom: 18px;
+}
+.tline.a { background: linear-gradient(90deg, var(--accent2), transparent); }
+.tline.p { background: linear-gradient(90deg, var(--accent3), transparent); }
+.tline.b { background: linear-gradient(90deg, var(--blue), transparent); }
+
+.snum {
+  position: absolute; bottom: 18px; right: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.6rem; color: var(--muted);
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 18px;
+}
+.card-t {
+  font-size: 0.65rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); margin-bottom: 9px;
+}
+.card h3 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.9rem; font-weight: 700; margin-bottom: 6px;
+}
+
+/* ── Code ── */
+.cb {
+  background: #020617;
+  border: 1px solid rgba(52,211,153,.18);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; line-height: 1.75;
+  color: var(--muted); overflow: hidden;
+}
+.cb .cmd { color: var(--accent); }
+.cb .kw  { color: var(--accent3); }
+.cb .str { color: var(--accent2); }
+.cb .cmt { color: #475569; font-style: italic; }
+
+/* ── Pills ── */
+.pill {
+  display: inline-block; padding: 2px 8px;
+  border-radius: 4px; font-size: 0.65rem; font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+.pg { background: rgba(52,211,153,.12); color: var(--accent); }
+.pa { background: rgba(251,191,36,.12); color: var(--accent2); }
+.pp { background: rgba(129,140,248,.12); color: var(--accent3); }
+.pb { background: rgba(56,189,248,.12); color: var(--blue); }
+.pr { background: rgba(248,113,113,.12); color: var(--danger); }
+
+/* ── Lists ── */
+ul.cl { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+ul.cl li {
+  font-size: 0.75rem; line-height: 1.6;
+  padding-left: 14px; position: relative; color: var(--text);
+}
+ul.cl li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+/* ── Tables ── */
+table.st { width: 100%; border-collapse: collapse; font-size: 0.73rem; }
+table.st th {
+  background: var(--bg-card2); color: var(--muted);
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; font-size: 0.63rem;
+  padding: 7px 11px; text-align: left;
+}
+table.st td {
+  padding: 7px 11px; border-bottom: 1px solid var(--border);
+  color: var(--text); vertical-align: top;
+}
+table.st tr:last-child td { border-bottom: none; }
+
+/* ── Flow nodes ── */
+.fn {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 13px;
+  font-size: 0.73rem; font-weight: 600;
+  text-align: center;
+}
+.fn.g { border-color: rgba(52,211,153,.4); color: var(--accent); }
+.fn.a { border-color: rgba(251,191,36,.4); color: var(--accent2); }
+.fn.p { border-color: rgba(129,140,248,.4); color: var(--accent3); }
+.fn.b { border-color: rgba(56,189,248,.4); color: var(--blue); }
+.fn.r { border-color: rgba(248,113,113,.4); color: var(--danger); }
+.fn .fl { font-size: 0.58rem; color: var(--muted); margin-bottom: 3px; }
+.arr { color: var(--muted); font-size: 0.85rem; line-height: 1; }
+
+/* ── Screenshot placeholder ── */
+.pholder {
+  background: var(--bg-card);
+  border: 2px dashed rgba(251,191,36,.35);
+  border-radius: var(--r);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 7px; color: var(--accent2);
+  padding: 16px;
+}
+.pholder .phi { font-size: 2.2rem; opacity: .55; }
+.pholder .phl { font-weight: 700; font-size: 0.8rem; }
+.pholder .phd { font-size: 0.65rem; color: var(--muted); text-align: center; line-height: 1.6; }
+
+/* ── Stat numbers ── */
+.stn { font-family: 'Noto Serif TC', serif; font-size: 2rem; font-weight: 900; line-height: 1; }
+.stl { font-size: 0.65rem; color: var(--muted); margin-top: 3px; }
+
+/* ── Number circles ── */
+.nc {
+  flex-shrink: 0; width: 20px; height: 20px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 700; margin-top: 2px;
+}
+.ncg { background: rgba(52,211,153,.15); color: var(--accent); }
+.nca { background: rgba(251,191,36,.15); color: var(--accent2); }
+.ncp { background: rgba(129,140,248,.15); color: var(--accent3); }
+.ncb { background: rgba(56,189,248,.15); color: var(--blue); }
+
+/* ════════════════════════════════════
+   COVER
+   ════════════════════════════════════ */
+.cover {
+  background: linear-gradient(135deg, #0a1628 0%, #1e293b 60%, #0f172a 100%);
+  height: 100%; padding: 64px 88px;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.cover::before {
+  content: '한';
+  position: absolute; right: -80px; top: 50%; transform: translateY(-50%);
+  font-family: 'Noto Serif TC', serif; font-size: 30rem; font-weight: 900;
+  opacity: .035; color: var(--accent); pointer-events: none; line-height: 1;
+}
+.cover .ctag {
+  font-size: 0.68rem; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 22px;
+}
+.cover h1 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 3.2rem; font-weight: 900; line-height: 1.15;
+  color: var(--text); margin-bottom: 14px;
+}
+.cover .csub {
+  font-size: 1rem; color: var(--muted); margin-bottom: 44px; font-weight: 300;
+}
+.cover-aline {
+  width: 72px; height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 2px; margin-bottom: 26px;
+}
+.cover-info { display: flex; gap: 28px; align-items: center; }
+.cii { display: flex; flex-direction: column; gap: 4px; }
+.cil { font-size: 0.6rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.civ { font-size: 0.95rem; font-weight: 600; color: var(--text); }
+.cdiv { width: 1px; height: 36px; background: var(--border); }
+
+/* PDF print support */
+@media print {
+  .reveal-viewport { background: var(--bg) !important; }
+}
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ══════════════════════════════
+     1 · 封面
+     ══════════════════════════════ -->
+<section>
+<div class="cover">
+  <div class="ctag">資料科學應用 · 期末專題</div>
+  <div class="cover-aline"></div>
+  <h1>韓文學習<br>RAG LINE Bot</h1>
+  <div class="csub">基於 LangGraph + Hybrid RAG 的智能韓文問答系統</div>
+  <div class="cover-info">
+    <div class="cii"><span class="cil">姓名</span><span class="civ">洪偉強</span></div>
+    <div class="cdiv"></div>
+    <div class="cii"><span class="cil">學號</span><span class="civ">B11356022</span></div>
+    <div class="cdiv"></div>
+    <div class="cii"><span class="cil">日期</span><span class="civ">2026 · 06</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     2 · 動機與問題定義
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tg">01 · 動機與問題定義</div>
+  <div class="sh">為什麼要做韓文學習 Bot？</div>
+  <div class="tline"></div>
+
+  <div class="cols3" style="margin-bottom:14px;">
+    <div class="card">
+      <div class="card-t" style="color:var(--danger)">學習痛點</div>
+      <ul class="cl">
+        <li>現有 App 缺乏自然語言互動</li>
+        <li>字典無法解釋文法句型</li>
+        <li>無法即時練習對話</li>
+        <li>TOPIK 備考缺乏模擬出題</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--accent)">解決方案</div>
+      <ul class="cl">
+        <li>LINE Bot 零學習成本，直接提問</li>
+        <li>RAG 知識庫提供精確文法說明</li>
+        <li>8 個專業 Skill 覆蓋各學習需求</li>
+        <li>APScheduler 每日推播韓文</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--blue)">目標使用者</div>
+      <ul class="cl">
+        <li>台灣韓文初學者 / 自學者</li>
+        <li>備考 TOPIK 初級考生</li>
+        <li>韓劇 / 韓流文化愛好者</li>
+        <li>需要快速查字的學生</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="card" style="padding:14px 20px; display:flex; align-items:center; gap:14px;">
+    <span style="font-size:1.6rem; flex-shrink:0;">💡</span>
+    <div>
+      <div style="font-size:.75rem; font-weight:700; margin-bottom:4px;">核心問題</div>
+      <div style="font-size:.75rem; color:var(--muted); line-height:1.6;">
+        如何讓韓文初學者透過自然語言問答，隨時獲得準確的單字查詢、文法說明與 TOPIK 練習題，而不需要切換多個 App？
+      </div>
+    </div>
+  </div>
+  <div class="snum">02 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     3 · 系統架構
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag ta">02 · 系統架構</div>
+  <div class="sh">系統元件與架構總覽</div>
+  <div class="tline a"></div>
+
+  <div class="cols2" style="gap:16px; height:560px;">
+    <!-- Left: Component table -->
+    <div class="card" style="overflow:hidden;">
+      <div class="card-t">系統元件</div>
+      <table class="st" style="margin-top:8px;">
+        <thead><tr><th>層級</th><th>技術選擇</th></tr></thead>
+        <tbody>
+          <tr><td>前端</td><td>LINE Bot（Messaging API）</td></tr>
+          <tr><td>後端</td><td>FastAPI /webhook/line</td></tr>
+          <tr><td>LLM</td><td>gpt-4.1-mini（router）/ gpt-4.1（generator）</td></tr>
+          <tr><td>Vector DB</td><td>Supabase pgvector</td></tr>
+          <tr><td>Embedding</td><td>text-embedding-3-small (1536-dim)</td></tr>
+          <tr><td>Graph</td><td>LangGraph reflection + InMemorySaver</td></tr>
+          <tr><td>Retrieval</td><td>Hybrid RAG（BM25 + cosine + RRF）</td></tr>
+          <tr><td>排程</td><td>APScheduler（08:00 / 21:00）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Right: Vertical flow -->
+    <div class="card">
+      <div class="card-t">完整問答流程</div>
+      <div style="display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:10px;">
+        <div class="fn" style="width:200px; text-align:center; padding:10px 8px;">
+          <div class="fl">使用者</div>📱 LINE App 傳訊
+        </div>
+        <div class="arr">↓</div>
+        <div class="fn b" style="width:200px; text-align:center; padding:10px 8px;">
+          <div class="fl">Webhook</div>LINE Messaging API
+        </div>
+        <div class="arr">↓</div>
+        <div class="fn p" style="width:200px; text-align:center; padding:10px 8px;">
+          <div class="fl">Backend</div>FastAPI 路由
+        </div>
+        <div class="arr">↓</div>
+        <div class="fn g" style="width:200px; text-align:center; padding:10px 8px;">
+          <div class="fl">Graph Engine</div>LangGraph 節點處理
+        </div>
+        <div class="arr">↓</div>
+        <div style="display:flex; gap:8px; width:200px;">
+          <div class="fn a" style="flex:1; text-align:center; padding:8px 4px; font-size:.65rem;"><div class="fl">向量 DB</div>Supabase</div>
+          <div class="fn p" style="flex:1; text-align:center; padding:8px 4px; font-size:.65rem;"><div class="fl">LLM</div>GPT-4.1</div>
+        </div>
+        <div class="arr">↓</div>
+        <div class="fn g" style="width:200px; text-align:center; padding:10px 8px; border-color:rgba(52,211,153,.6);">
+          <div class="fl">回覆</div>LINE Bot 回答
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">03 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     4 · LangGraph 工作流程
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tg">03 · 工作流程</div>
+  <div class="sh">LangGraph 節點流程</div>
+  <div class="tline"></div>
+
+  <!-- Flow row -->
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:18px; flex-wrap:nowrap;">
+    <div class="fn a" style="flex:1; text-align:center;"><div class="fl">① 意圖分析</div>router</div>
+    <div class="arr">→</div>
+    <div class="fn b" style="flex:1; text-align:center;"><div class="fl">② 向量檢索</div>retrieve</div>
+    <div class="arr">→</div>
+    <div class="fn" style="flex:1; text-align:center; color:var(--muted); border-color:rgba(148,163,184,.25);"><div class="fl">③ 資料充足判斷</div>sufficiency</div>
+    <div class="arr">→</div>
+    <div class="fn p" style="flex:1; text-align:center;"><div class="fl">④ 生成回答</div>generate</div>
+    <div class="arr">→</div>
+    <div class="fn r" style="flex:1; text-align:center;"><div class="fl">⑤ 品質審查</div>judge</div>
+    <div class="arr">⇄</div>
+    <div class="fn g" style="flex:1; text-align:center;"><div class="fl">⑥ 反思修正</div>reflect</div>
+  </div>
+
+  <div class="cols3" style="gap:12px;">
+    <div class="card">
+      <div class="card-t" style="color:var(--accent2)">① router</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        <strong style="color:var(--text)">Keyword 層</strong>：快速關鍵詞比對，命中即路由<br>
+        <strong style="color:var(--text)">LLM 層</strong>：GPT-4.1-mini 語意判斷<br>
+        回傳 <span class="pill pg">skill_id</span> + <span class="pill pa">rag_categories</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--blue)">② retrieve</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        Multi-seed 查詢（原始問題 + 子問題）<br>
+        BM25 keyword + cosine similarity<br>
+        → <strong style="color:var(--text)">Hybrid RRF 融合排序</strong>，Top-4 chunks
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--accent3)">④ generate</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        Two-stage 架構：<br>
+        <span class="pill pp">AnswerContract</span> 萃取事實<br>
+        <span class="pill pp">NarrativeRenderer</span> LINE 格式輸出
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t">③ sufficiency</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        Top-score ≥ 0.4 → 充足<br>
+        不足時提示使用者「資料不夠」<br>
+        避免 hallucination
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--danger)">⑤ judge</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        4 軸 LLM 評分：groundedness / citation / format / honesty<br>
+        worst ≥ 6 且 mean ≥ 7.0 → 通過<br>
+        失敗 → 觸發 reflect 重新生成（預設最多 1 次）
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--accent)">⑥ reflect</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+        分析失敗原因 → 修正 prompt<br>
+        InMemorySaver 保留對話狀態<br>
+        最終回覆送回 LINE API
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">04 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     5 · Skill 設計
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tp">04 · Skill 設計</div>
+  <div class="sh">Intent Router + 8 個 Skill</div>
+  <div class="tline p"></div>
+
+  <div class="cols23" style="gap:16px;">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">Intent Router 雙層設計</div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:6px;">
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div class="nc nca">1</div>
+            <div style="font-size:.73rem; line-height:1.55;">
+              <strong style="color:var(--accent2)">Keyword 層</strong>（低成本）<br>
+              <span style="color:var(--muted);">「怎麼說」→ translator；「什麼意思」→ vocabulary_master</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; align-items:flex-start;">
+            <div class="nc ncp">2</div>
+            <div style="font-size:.73rem; line-height:1.55;">
+              <strong style="color:var(--accent3)">LLM 層</strong>（GPT-4.1-mini）<br>
+              <span style="color:var(--muted);">回傳 skill_id + is_rag_required + rag_categories</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">SKILL.md 兜底機制</div>
+        <div style="font-size:.72rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+          每個 skill 有獨立 <span class="pill pg">SKILL.md</span> 規則檔<br>
+          定義：輸出格式、禁止內容、chunk 使用規則<br>
+          → 即使 RAG 返回無關 chunk，規則仍能過濾錯誤輸出
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <table class="st">
+        <thead>
+          <tr><th>Skill</th><th>功能</th><th>RAG</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pill pg">vocabulary_master</span></td><td>單字查詢 + 易混淆詞</td><td style="color:var(--accent)">✓</td></tr>
+          <tr><td><span class="pill pa">grammar_guide</span></td><td>文法句型說明</td><td style="color:var(--accent)">✓</td></tr>
+          <tr><td><span class="pill pp">topik_tutor</span></td><td>TOPIK 出題與解析</td><td style="color:var(--accent)">✓</td></tr>
+          <tr><td><span class="pill pb">reading_helper</span></td><td>韓文句子文法解析</td><td style="color:var(--muted)">—</td></tr>
+          <tr><td><span class="pill pb">translator</span></td><td>中翻韓 / 韓翻中</td><td style="color:var(--muted)">—</td></tr>
+          <tr><td><span class="pill pb">conversation_coach</span></td><td>韓文對話練習（해요체）</td><td style="color:var(--muted)">—</td></tr>
+          <tr><td><span class="pill pb">general_chat</span></td><td>一般問答</td><td style="color:var(--muted)">—</td></tr>
+          <tr><td><span class="pill pr">daily_scheduler</span></td><td>每日定時推播 08:00 / 21:00</td><td style="color:var(--muted)">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="snum">05 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     6 · 知識庫設計與建置
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag ta">05 · 知識庫設計</div>
+  <div class="sh">Knowledge 設計與建置流程</div>
+  <div class="tline a"></div>
+
+  <!-- Pipeline -->
+  <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+    <div class="fn b" style="flex:1; text-align:center; padding:10px 6px;"><div class="fl">① 爬蟲</div>Playwright</div>
+    <div class="arr">→</div>
+    <div class="fn a" style="flex:1; text-align:center; padding:10px 6px;"><div class="fl">② 整理</div>Markdown</div>
+    <div class="arr">→</div>
+    <div class="fn p" style="flex:1; text-align:center; padding:10px 6px;"><div class="fl">③ 切段</div>Chunking</div>
+    <div class="arr">→</div>
+    <div class="fn g" style="flex:1; text-align:center; padding:10px 6px;"><div class="fl">④ 向量化</div>Embedding</div>
+    <div class="arr">→</div>
+    <div class="fn a" style="flex:1; text-align:center; padding:10px 6px;"><div class="fl">⑤ 存入</div>Supabase</div>
+  </div>
+
+  <div class="cols2">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">知識庫現況</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-top:8px;">
+          <div style="text-align:center; background:#0f172a; border-radius:8px; padding:10px;">
+            <div class="stn" style="color:var(--accent2); font-size:1.6rem;">775</div>
+            <div class="stl">grammar_patterns</div>
+          </div>
+          <div style="text-align:center; background:#0f172a; border-radius:8px; padding:10px;">
+            <div class="stn" style="color:var(--accent); font-size:1.6rem;">41</div>
+            <div class="stl">vocabulary</div>
+          </div>
+          <div style="text-align:center; background:#0f172a; border-radius:8px; padding:10px;">
+            <div class="stn" style="color:var(--blue); font-size:1.6rem;">10</div>
+            <div class="stl">topik_questions</div>
+          </div>
+        </div>
+        <div style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:.72rem; color:var(--muted);">總計</span>
+          <span class="stn" style="font-size:1.4rem;">845 chunks</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">去重機制</div>
+        <div style="font-size:.72rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+          Upsert 以 <span class="pill pg">content_hash</span>（SHA256）去重<br>
+          修改 MD 後重新 ingest 不產生重複 chunk<br>
+          舊 chunk 手動刪除後重新插入
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">Supabase 表結構（private_knowledge）</div>
+        <table class="st" style="margin-top:8px;">
+          <thead><tr><th>欄位</th><th>型別</th><th>說明</th></tr></thead>
+          <tbody>
+            <tr><td style="font-family:'JetBrains Mono';font-size:.63rem;">title</td><td style="font-size:.65rem;">TEXT</td><td style="font-size:.65rem;">章節標題</td></tr>
+            <tr><td style="font-family:'JetBrains Mono';font-size:.63rem;">content</td><td style="font-size:.65rem;">TEXT</td><td style="font-size:.65rem;">切段後內文</td></tr>
+            <tr><td style="font-family:'JetBrains Mono';font-size:.63rem;">category</td><td style="font-size:.65rem;">TEXT</td><td style="font-size:.65rem;">grammar_patterns / vocabulary / topik_questions</td></tr>
+            <tr><td style="font-family:'JetBrains Mono';font-size:.63rem;">vector</td><td style="font-size:.65rem;">vector(1536)</td><td style="font-size:.65rem;">OpenAI 向量</td></tr>
+            <tr><td style="font-family:'JetBrains Mono';font-size:.63rem;">content_hash</td><td style="font-size:.65rem;">TEXT UNIQUE</td><td style="font-size:.65rem;">SHA256 去重</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-t">爬蟲指令</div>
+        <div class="cb" style="margin-top:6px; font-size:.64rem;">
+<span class="cmd">python scripts/crawl_batch.py \</span>
+  <span class="cmd">urls/grammar_howtostudykorean.txt</span>
+<span class="cmd">python scripts/ingest_markdown.py \</span>
+  <span class="cmd">docs/RAG/crawled/grammar_*/</span>
+        </div>
+        <div style="margin-top:7px; font-size:.68rem; color:var(--muted);">
+          Unit 1 L1–8 + Unit 2 L26–33（共 16 頁）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">06 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     7 · RAG Pipeline 詳細流程
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tp">06 · RAG Pipeline</div>
+  <div class="sh">RAG 完整資料流程</div>
+  <div class="tline p"></div>
+
+  <!-- Ingestion pipeline -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-t" style="color:var(--blue)">① Ingestion Pipeline（知識庫建置）</div>
+    <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:nowrap;">
+      <div class="fn b" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">來源</div>howtostudykorean.com</div>
+      <div class="arr">→</div>
+      <div class="fn b" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">爬蟲</div>Playwright</div>
+      <div class="arr">→</div>
+      <div class="fn a" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">整理</div>Markdown</div>
+      <div class="arr">→</div>
+      <div class="fn p" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">切段</div>Chunking</div>
+      <div class="arr">→</div>
+      <div class="fn g" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">向量化</div>OpenAI Embed</div>
+      <div class="arr">→</div>
+      <div class="fn a" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">存入</div>Supabase pgvector</div>
+    </div>
+  </div>
+
+  <!-- Retrieval pipeline -->
+  <div class="card" style="margin-bottom:14px;">
+    <div class="card-t" style="color:var(--accent)">② Retrieval Pipeline（查詢與生成）</div>
+    <div style="display:flex; align-items:center; gap:6px; margin-top:10px; flex-wrap:nowrap;">
+      <div class="fn" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem; border-color:rgba(148,163,184,.3);"><div class="fl">輸入</div>使用者問題</div>
+      <div class="arr">→</div>
+      <div class="fn a" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">意圖</div>Intent Router</div>
+      <div class="arr">→</div>
+      <div class="fn b" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">Multi-seed</div>BM25 + cosine</div>
+      <div class="arr">→</div>
+      <div class="fn p" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">排序</div>RRF Rerank</div>
+      <div class="arr">→</div>
+      <div class="fn" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem; color:var(--muted); border-color:rgba(148,163,184,.25);"><div class="fl">判斷</div>Sufficiency</div>
+      <div class="arr">→</div>
+      <div class="fn g" style="flex:1; text-align:center; padding:10px 4px; font-size:.68rem;"><div class="fl">生成</div>GPT-4.1 回答</div>
+    </div>
+  </div>
+
+  <!-- Key design points -->
+  <div class="cols3" style="gap:12px;">
+    <div class="card">
+      <div class="card-t" style="color:var(--blue)">Multi-seed 查詢</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+        原始問題 + 分解子問題<br>各別查詢後合併結果<br>→ 提高召回率
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--accent2)">Hybrid + RRF 融合</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+        每 seed：<span style="color:var(--blue)">0.7 × cosine</span> + <span style="color:var(--accent)">0.3 × BM25</span><br>
+        跨 seed：RRF Σ 1/(60+rank) 重排<br>
+        → 語意 + 關鍵詞 + 多 seed 共識
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-t" style="color:var(--accent3)">Category Filter</div>
+      <div style="font-size:.72rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+        Router 鎖定 rag_categories<br>grammar → grammar_patterns only<br>→ 防止跨 category chunk 污染
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">07 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     8 · 資料來源
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tb">07 · 資料來源</div>
+  <div class="sh">資料來源說明</div>
+  <div class="tline b"></div>
+
+  <div class="cols2">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card" style="border-left:3px solid var(--blue);">
+        <div class="card-t" style="color:var(--blue)">官方網站爬蟲（Playwright）</div>
+        <table class="st" style="margin-top:8px;">
+          <thead><tr><th>來源</th><th>內容</th><th>規模</th></tr></thead>
+          <tbody>
+            <tr>
+              <td style="font-family:'JetBrains Mono'; font-size:.65rem;">howtostudykorean.com</td>
+              <td>系統化文法教學</td>
+              <td><span class="pill pa">775 chunks</span></td>
+            </tr>
+            <tr>
+              <td colspan="3" style="font-size:.67rem; color:var(--muted);">
+                Unit 1: Lesson 1–8（基礎文法）<br>
+                Unit 2: Lesson 26–33（中階文法）
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:8px; font-size:.67rem; color:var(--muted);">
+          🔗 https://www.howtostudykorean.com
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <div class="card-t" style="color:var(--accent)">自行撰寫（手工整理）</div>
+        <ul class="cl" style="margin-top:6px;">
+          <li>Markdown 詞彙檔 41 個（knowledge/vocabulary/）</li>
+          <li>每份含：定義、발음、例句、易混淆詞</li>
+          <li>TOPIK 練習題 10 組（含 4 選項 + 中文解析）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card" style="border-left:3px solid var(--accent3);">
+        <div class="card-t" style="color:var(--accent3)">課程教材（原始框架）</div>
+        <ul class="cl" style="margin-top:6px;">
+          <li>project-linebot-rag-skills 基礎架構</li>
+          <li>LangGraph + RAG pipeline 骨架</li>
+          <li>本專題在此基礎上全面修改 skill 與知識庫</li>
+        </ul>
+      </div>
+      <div class="card" style="background:rgba(251,191,36,.04); border-color:rgba(251,191,36,.2);">
+        <div class="card-t" style="color:var(--accent2)">⚠️ 資料使用聲明</div>
+        <div style="font-size:.7rem; color:var(--muted); line-height:1.6; margin-top:4px;">
+          howtostudykorean.com 內容僅供學術研究與課程展示使用，未用於商業用途。<br>
+          爬蟲遵守合理請求速率，不造成伺服器負擔。
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">修改程度說明</div>
+        <ul class="cl" style="margin-top:6px;">
+          <li>新增 8 個全新 skill + SKILL.md 規則</li>
+          <li>自建 Playwright 爬蟲規則（site_rules.py）</li>
+          <li>修改 narrative.py、intent_router.py、push_selector.py</li>
+          <li>知識庫從 0 建立至 845 chunks</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">08 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     8 · 系統操作說明
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tg">07 · 系統操作</div>
+  <div class="sh">系統啟動與操作說明</div>
+  <div class="tline"></div>
+
+  <div class="cols2">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">啟動步驟</div>
+        <div class="cb" style="margin-top:8px;">
+<span class="cmt"># 1. 安裝依賴</span>
+<span class="cmd">pip install -r requirements.txt</span>
+
+<span class="cmt"># 2. 啟動 FastAPI</span>
+<span class="cmd">python -m uvicorn app.main:app \</span>
+  <span class="cmd">--port 8000 --reload</span>
+
+<span class="cmt"># 3. 公開 Webhook</span>
+<span class="cmd">ngrok http 8000</span>
+
+<span class="cmt"># 4. LINE Developers 設定 Webhook URL</span>
+<span class="cmt"># https://&lt;ngrok-url&gt;/webhook/line</span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">環境設定 .env</div>
+        <div class="cb" style="margin-top:8px; font-size:.64rem;">
+<span class="kw">OPENAI_API_KEY</span>=<span class="str">sk-...</span>
+<span class="kw">LINE_CHANNEL_ACCESS_TOKEN</span>=<span class="str">...</span>
+<span class="kw">LINE_CHANNEL_SECRET</span>=<span class="str">...</span>
+<span class="kw">SUPABASE_URL</span>=<span class="str">https://xxx.supabase.co</span>
+<span class="kw">SUPABASE_KEY</span>=<span class="str">...</span>
+<span class="kw">AI_PROVIDER</span>=<span class="str">openai</span>
+<span class="kw">GRAPH_VARIANT</span>=<span class="str">reflection</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-t">可以問什麼</div>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pg" style="flex-shrink:0; margin-top:2px;">單字</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「모레는 무슨 뜻?」「오다 易混淆詞是什麼？」</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pa" style="flex-shrink:0; margin-top:2px;">文法</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「아/어서 怎麼用？」「을 수 있다 例句」</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pp" style="flex-shrink:0; margin-top:2px;">TOPIK</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「出一題 아서 文法填空」「TOPIK 練習」</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pb" style="flex-shrink:0; margin-top:2px;">翻譯</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「我今天很開心 翻成韓文」「감사합니다 中文」</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pb" style="flex-shrink:0; margin-top:2px;">對話</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「用韓文跟我練習打招呼」「點餐情境練習」</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pb" style="flex-shrink:0; margin-top:2px;">解析</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">「이 문장을 분석해 줘」（句子文法解析）</span>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <span class="pill pg" style="flex-shrink:0; margin-top:2px;">推播</span>
+          <span style="font-size:.72rem; color:var(--muted); line-height:1.55;">每日 08:00 / 21:00 自動推送每日韓文單字</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">09 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     9 · 操作截圖 1 — vocabulary_master
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tg">08 · 操作截圖</div>
+  <div class="sh">系統展示 1：vocabulary_master</div>
+  <div class="tline"></div>
+
+  <div class="cols2" style="height:530px; gap:16px;">
+    <!-- PLACEHOLDER -->
+    <div class="pholder" style="height:100%;">
+      <div class="phi">📱</div>
+      <div class="phl">【截圖預留位置】</div>
+      <div class="phd">
+        使用者問：「모레는 무슨 뜻?」<br>
+        系統回覆：定義 + 발음 + 例句 + 易混淆詞（모래）<br><br>
+        ⚠️ 請替換為 LINE Bot 對話截圖<br>（手機截圖或 LINE PC 版）
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">展示重點</div>
+        <ul class="cl" style="margin-top:6px;">
+          <li>查詢韓文單字 <span class="pill pa">모레</span>（後天）</li>
+          <li>正確識別易混淆詞 <span class="pill pr">모래</span>（沙子）</li>
+          <li>발음差異說明（mo-re vs mo-rae）</li>
+          <li>各自附上自然例句</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-t">路由路徑</div>
+        <div style="font-size:.72rem; color:var(--muted); line-height:1.7;">
+          「모레는 무슨 뜻」<br>
+          → keyword <span class="pill pg">뜻</span> 命中<br>
+          → skill: <span class="pill pg">vocabulary_master</span><br>
+          → RAG categories: vocabulary, confusable_pairs<br>
+          → 命中 chunk: 모레.md 易混淆詞 section
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">SKILL.md 易混淆規則</div>
+        <div style="font-size:.72rem; color:var(--muted); line-height:1.6;">
+          易混淆 = 발음 / 拼寫相近<br>
+          <span style="color:var(--accent)">모레 vs 모래</span>（발음相近 ✓）<br>
+          <span style="color:var(--danger)">어제 / 오늘 / 내일</span>（同義類別詞，不算易混淆 ✗）
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">10 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     10 · 操作截圖 2 — grammar + topik
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag ta">09 · 操作截圖</div>
+  <div class="sh">系統展示 2：grammar_guide + topik_tutor</div>
+  <div class="tline a"></div>
+
+  <div class="cols3" style="gap:14px; margin-bottom:12px;">
+    <div class="pholder" style="height:300px;">
+      <div class="phi">📱</div>
+      <div class="phl">【截圖預留】</div>
+      <div class="phd">
+        grammar_guide<br>
+        「아/어서 怎麼用？」<br><br>
+        ⚠️ 請替換截圖
+      </div>
+    </div>
+    <div class="pholder" style="height:300px;">
+      <div class="phi">📱</div>
+      <div class="phl">【截圖預留】</div>
+      <div class="phd">
+        topik_tutor<br>
+        「出一題文法練習題」<br><br>
+        ⚠️ 請替換截圖
+      </div>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="card" style="flex:1;">
+        <div class="card-t" style="color:var(--accent2)">grammar_guide 特點</div>
+        <ul class="cl" style="margin-top:6px; font-size:.7rem;">
+          <li>文法句型結構完整說明</li>
+          <li>3 個以上自然例句</li>
+          <li>嚴格 category filter：<br>只使用 grammar_patterns chunk</li>
+          <li>禁止補充詞彙說明段落</li>
+        </ul>
+      </div>
+      <div class="card" style="flex:1;">
+        <div class="card-t" style="color:var(--accent3)">topik_tutor 特點</div>
+        <ul class="cl" style="margin-top:6px; font-size:.7rem;">
+          <li>句型填空題（非詞彙定義題）</li>
+          <li>4 個選項同詞性同語法類型</li>
+          <li>解析說明正確答案原因</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="padding:10px 16px; background:rgba(251,191,36,.04); border-color:rgba(251,191,36,.2);">
+    <span style="font-size:.7rem; color:var(--accent2); font-weight:700;">⚠️ 截圖說明：</span>
+    <span style="font-size:.7rem; color:var(--muted);">灰色方塊為預留位置，請在繳交前替換為 LINE Bot 實際對話截圖（手機截圖或 LINE PC 版皆可）。</span>
+  </div>
+
+  <div class="snum">11 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     11 · 後台驗證 — Hybrid RRF
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tp">10 · 後台驗證</div>
+  <div class="sh">Hybrid RAG 檢索機制驗證</div>
+  <div class="tline p"></div>
+
+  <div class="cols2">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">Hybrid + RRF 公式（兩階段）</div>
+        <div style="background:#020617; border-radius:8px; padding:12px 16px; margin-top:8px; font-family:'JetBrains Mono', monospace;">
+          <div style="font-size:.72rem; color:var(--muted); margin-bottom:4px;">① 每 seed Hybrid 分數</div>
+          <div style="font-size:.82rem; color:var(--accent2); line-height:1.8; margin-bottom:10px;">
+            combined = <span style="color:var(--blue)">0.7 × cosine</span> + <span style="color:var(--accent)">0.3 × BM25</span>
+          </div>
+          <div style="font-size:.72rem; color:var(--muted); margin-bottom:4px;">② Multi-seed RRF 融合</div>
+          <div style="font-size:.82rem; color:var(--accent2); line-height:1.8;">
+            score<sub style="font-size:.6em">rrf</sub> = Σ 1 / (60 + rank<sub style="font-size:.6em">i</sub>)
+          </div>
+        </div>
+        <div style="font-size:.7rem; color:var(--muted); margin-top:10px; line-height:1.6;">
+          <span style="color:var(--blue)">cosine (0.7)</span>：語意相似度 · <span style="color:var(--accent)">BM25 (0.3)</span>：關鍵詞搜索<br>
+          RRF 跨多 seed 排名融合，鈍化極端分數<br>
+          → 避免純 vector 遇冷門詞失效
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">Multi-seed 查詢</div>
+        <ul class="cl" style="margin-top:6px; font-size:.72rem;">
+          <li>原始問題 + 分解子問題各別查詢</li>
+          <li>合併結果後 RRF 重新排序</li>
+          <li>Top-4 chunks 傳給 generator（final_context_k=4）</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Terminal placeholder -->
+    <div class="pholder" style="height:360px;">
+      <div class="phi">🖥️</div>
+      <div class="phl">【Terminal Log 截圖預留】</div>
+      <div class="phd">
+        執行 scripts/demo_retrieval.py 的輸出<br>
+        顯示：vector / keyword / combined 分數<br>
+        各 chunk 標題、category 與排名<br><br>
+        ⚠️ 請截取 terminal 輸出畫面
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">12 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     12 · 成果展示、挑戰與解法
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag tg">11 · 成果討論</div>
+  <div class="sh">成果展示、挑戰與解法</div>
+  <div class="tline"></div>
+
+  <div class="cols2" style="gap:14px;">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card" style="border-left:3px solid var(--accent);">
+        <div class="card-t" style="color:var(--accent)">✅ 成功案例</div>
+        <div style="display:flex; flex-direction:column; gap:8px; margin-top:6px;">
+          <div style="display:flex; gap:9px; align-items:flex-start;">
+            <div class="nc ncg">1</div>
+            <div style="font-size:.72rem; line-height:1.5;">
+              <strong>易混淆詞正確識別</strong><br>
+              <span style="color:var(--muted)">모레→모래 발음差異清楚說明，同義類別詞不混入</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:9px; align-items:flex-start;">
+            <div class="nc ncg">2</div>
+            <div style="font-size:.72rem; line-height:1.5;">
+              <strong>文法說明精確</strong><br>
+              <span style="color:var(--muted)">을 수 있다、아/어서 格式正確，無無關 chunk 混入</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:9px; align-items:flex-start;">
+            <div class="nc ncg">3</div>
+            <div style="font-size:.72rem; line-height:1.5;">
+              <strong>TOPIK 出題類型正確</strong><br>
+              <span style="color:var(--muted)">句型填空；選項全是同語法類型動詞</span>
+            </div>
+          </div>
+          <div style="display:flex; gap:9px; align-items:flex-start;">
+            <div class="nc ncg">4</div>
+            <div style="font-size:.72rem; line-height:1.5;">
+              <strong>全部 8 個 skill 測試通過</strong><br>
+              <span style="color:var(--muted)">包含翻譯、對話練習、句子解析</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--danger);">
+        <div class="card-t" style="color:var(--danger)">⚠️ 限制</div>
+        <ul class="cl" style="margin-top:6px; font-size:.72rem;">
+          <li>文法覆蓋範圍有限：僅 Unit 1 L1–8 + Unit 2 L26–33，進階語法（Unit 3+）尚未納入</li>
+          <li>TOPIK 練習題為手工整理，非官方歷屆真題，難度與正式考試有落差</li>
+          <li>不支援多輪對話記憶，每次問答獨立無上下文</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--accent2);">
+      <div class="card-t" style="color:var(--accent2)">🔧 遇到的問題與解法</div>
+      <table class="st" style="margin-top:8px;">
+        <thead><tr><th>問題</th><th>原因</th><th>解決方式</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-size:.65rem;">品質警告出現在所有 skill</td>
+            <td style="font-size:.65rem; color:var(--muted);">judge 不分 skill 類型一律審查</td>
+            <td style="font-size:.65rem;">加入 <span class="pill pa">SKIP_JUDGE_SKILLS</span></td>
+          </tr>
+          <tr>
+            <td style="font-size:.65rem;">易混淆詞顯示同義詞</td>
+            <td style="font-size:.65rem; color:var(--muted);">SKILL.md 規則不明確，同義詞被誤判為易混淆</td>
+            <td style="font-size:.65rem;">規則：발음相近才算易混淆</td>
+          </tr>
+          <tr>
+            <td style="font-size:.65rem;">Router 意圖誤判</td>
+            <td style="font-size:.65rem; color:var(--muted);">keyword 清單含歧義詞「什麼意思」</td>
+            <td style="font-size:.65rem;">移除 TRANSLATE_TO_ZH 歧義詞</td>
+          </tr>
+          <tr>
+            <td style="font-size:.65rem;">grammar_guide 生成生硬例句</td>
+            <td style="font-size:.65rem; color:var(--muted);">文法 chunk 混入詞彙 chunk，機械式拼湊</td>
+            <td style="font-size:.65rem;">SKILL.md 規則 + category filter 鎖定 grammar_patterns</td>
+          </tr>
+          <tr>
+            <td style="font-size:.65rem;">APScheduler date filter 無效</td>
+            <td style="font-size:.65rem; color:var(--muted);">SQL 表達式在 Python 層執行無效</td>
+            <td style="font-size:.65rem;">Python 計算 cutoff ISO timestamp</td>
+          </tr>
+          <tr>
+            <td style="font-size:.65rem;">Chunk 混入無關內容</td>
+            <td style="font-size:.65rem; color:var(--muted);">Router 未強制鎖定 rag_categories</td>
+            <td style="font-size:.65rem;">Router 強制 + SKILL.md 兜底過濾</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="snum">13 / 14</div>
+</div>
+</section>
+
+<!-- ══════════════════════════════
+     13 · 實務貢獻 + 結論
+     ══════════════════════════════ -->
+<section>
+<div class="si">
+  <div class="stag ta">12 · 結論</div>
+  <div class="sh">實務貢獻與未來改進</div>
+  <div class="tline a"></div>
+
+  <div class="cols2">
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-t">實務貢獻</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+          <div style="background:#0f172a; border-radius:8px; padding:10px; text-align:center;">
+            <div class="stn" style="color:var(--accent2); font-size:1.5rem;">845</div>
+            <div class="stl">知識庫 chunks 建置</div>
+          </div>
+          <div style="background:#0f172a; border-radius:8px; padding:10px; text-align:center;">
+            <div class="stn" style="color:var(--accent); font-size:1.5rem;">8</div>
+            <div class="stl">Skill 設計與測試</div>
+          </div>
+          <div style="background:#0f172a; border-radius:8px; padding:10px; text-align:center;">
+            <div class="stn" style="color:var(--danger); font-size:1.5rem;">6+</div>
+            <div class="stl">重大 Bug 修正</div>
+          </div>
+          <div style="background:#0f172a; border-radius:8px; padding:10px; text-align:center;">
+            <div class="stn" style="color:var(--blue); font-size:1.5rem;">16</div>
+            <div class="stl">爬取頁面</div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-t">學習收穫</div>
+        <div style="display:flex; flex-direction:column; gap:7px; margin-top:6px;">
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="nc ncg">✓</div>
+            <span style="font-size:.72rem; color:var(--muted); line-height:1.5;">理解 RAG 完整流程：資料整理、向量化、檢索、生成</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="nc ncg">✓</div>
+            <span style="font-size:.72rem; color:var(--muted); line-height:1.5;">LangGraph 節點設計與 reflection 回路架構實作</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="nc ncg">✓</div>
+            <span style="font-size:.72rem; color:var(--muted); line-height:1.5;">Hybrid RRF 融合搜索避免純 vector 的弱點</span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:flex-start;">
+            <div class="nc ncg">✓</div>
+            <span style="font-size:.72rem; color:var(--muted); line-height:1.5;">SKILL.md 規則設計作為 LLM 輸出品質兜底機制</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--accent3);">
+      <div class="card-t" style="color:var(--accent3)">未來改進方向</div>
+      <div style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <div class="nc ncp">1</div>
+          <div style="font-size:.72rem; line-height:1.5;">
+            <strong>擴充知識庫</strong><br>
+            <span style="color:var(--muted)">Unit 2 Lesson 34–50；vocabulary 100+ 單字；TOPIK 真題 50+ 題</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <div class="nc ncp">2</div>
+          <div style="font-size:.72rem; line-height:1.5;">
+            <strong>多輪對話記憶</strong><br>
+            <span style="color:var(--muted)">conversation_coach 保留對話上下文，提供完整練習體驗</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <div class="nc ncp">3</div>
+          <div style="font-size:.72rem; line-height:1.5;">
+            <strong>個人化學習追蹤</strong><br>
+            <span style="color:var(--muted)">記錄學過的單字、錯誤的 TOPIK 題，個人化推薦複習</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <div class="nc ncp">4</div>
+          <div style="font-size:.72rem; line-height:1.5;">
+            <strong>穩定部署</strong><br>
+            <span style="color:var(--muted)">改用 Railway / Render 取代 ngrok，提供穩定 24hr 服務</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:9px; align-items:flex-start;">
+          <div class="nc ncp">5</div>
+          <div style="font-size:.72rem; line-height:1.5;">
+            <strong>語音輸入支援</strong><br>
+            <span style="color:var(--muted)">整合 Whisper API，支援語音問韓文발음問題</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="snum">14 / 14</div>
+</div>
+</section>
+
+</div><!-- .slides -->
+</div><!-- .reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@4.6.1/dist/reveal.js"></script>
+<script>
+Reveal.initialize({
+  hash: true,
+  transition: 'fade',
+  transitionSpeed: 'fast',
+  width: 1280,
+  height: 720,
+  margin: 0,
+  pdfMaxPagesPerSlide: 1,
+  pdfSeparateFragments: false,
+  progress: true,
+  slideNumber: false,
+  controls: true,
+  center: false,
+});
+</script>
+</body>
+</html>
